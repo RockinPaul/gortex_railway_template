@@ -37,9 +37,9 @@ for entry in $(echo "$GORTEX_REPOS" | tr ',' ' '); do
     git -C "$dir" pull --ff-only --quiet || echo "warning: could not fast-forward $name; serving the current checkout" >&2
   else
     echo "cloning $name from $url"
-    git clone --quiet --single-branch "$url" "$dir"
+    git clone --quiet --single-branch "$url" "$dir" || { echo "warning: could not clone $name from $url; skipping it" >&2; rm -rf "$dir"; continue; }
   fi
-  gortex track "$dir" --no-progress >/dev/null
+  gortex track "$dir" --no-progress >/dev/null || { echo "warning: could not track $name; skipping it" >&2; continue; }
   echo "tracking $name at $dir"
 done
 set +f

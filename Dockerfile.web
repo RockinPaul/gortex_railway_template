@@ -28,6 +28,9 @@ RUN chmod +x entrypoint.sh
 ENV PORT=8080 \
     WEB_USER=admin \
     GORTEX_UPSTREAM=http://gortex.railway.internal:7411 \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    HOME=/home/node
+# Nothing here needs root: no volume, unprivileged port.
+USER node
 EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]

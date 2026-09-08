@@ -11,7 +11,7 @@ No database and no LLM key are needed. gortex parses code with tree-sitter and k
 
 ## Which repositories get indexed
 
-`GORTEX_REPOS` on the `gortex` service is a comma-separated list of git URLs, or `name=url` pairs. On every start the entrypoint clones each repo into `/data/repos/<name>` (or fast-forwards it if it exists), registers it with `gortex track`, and then starts the daemon, which indexes everything it tracks. A background loop pulls every `GORTEX_SYNC_INTERVAL` seconds, and the daemon reindexes changed files incrementally. The default is gortex's own repository, so a fresh deploy has a real codebase to explore; replace it with yours.
+`GORTEX_REPOS` on the `gortex` service is a comma-separated list of git URLs, or `name=url` pairs. On every start the entrypoint clones each repo into `/data/repos/<name>` (or fast-forwards it if it exists), registers it with `gortex track`, and then starts the daemon, which indexes everything it tracks. An entry that cannot be cloned is skipped with a warning in the logs; the other repos still come up. A background loop pulls every `GORTEX_SYNC_INTERVAL` seconds, and the daemon reindexes changed files incrementally. The default is gortex's own repository, so a fresh deploy has a real codebase to explore; replace it with yours.
 
 Private repositories: set `GIT_TOKEN` to a token with read access (a GitHub fine-grained token, for example). It is handed to git through a credential helper, never written into a URL or config file. Use plain `https://` URLs.
 
@@ -74,7 +74,7 @@ The UI is optional. Delete the `web` service if you only need MCP and the API.
 | `GORTEX_SYNC_INTERVAL` | `300` | Seconds between `git pull` rounds. `0` disables syncing. |
 | `PORT` | `7411` | Listening port for the public domain and the private network. |
 | `GIT_TOKEN` | unset | Read token for private `https://` repositories. |
-| `GORTEX_DAEMON_MEMLIMIT` | unset | Soft memory cap for the daemon, for example `4GiB`. Indexing memory scales with repo size. |
+| `GORTEX_DAEMON_MEMLIMIT` | unset | Soft memory cap for the daemon, for example `4GiB`; read natively by gortex. Indexing memory scales with repo size. |
 
 `web` service:
 
@@ -105,7 +105,7 @@ Bump `GORTEX_VERSION` and the two checksums in `Dockerfile` from the release's `
 ## Files
 
 - `Dockerfile`: `alpine` plus git and the verified gortex release binary
-- `entrypoint.sh`: clones, syncs, tracks, then runs `gortex daemon start` with `--http-addr [::]:$PORT`
+- `entrypoint.sh`: clones or pulls and tracks each repo, starts the sync loop, then runs `gortex daemon start` with `--http-addr [::]:$PORT`
 - `askpass.sh`: git credential helper that answers with `GIT_TOKEN`
 - `Dockerfile.web`, `web/patch.js`, `web/Caddyfile`, `web/entrypoint.sh`: the UI image
 - `TEMPLATE_OVERVIEW.md`: the marketplace description

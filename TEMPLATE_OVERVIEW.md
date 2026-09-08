@@ -27,7 +27,7 @@ Hosting gortex on Railway means one daemon service and one optional UI service. 
 
 ### Implementation Details
 
-- `gortex`: built from the template repo's Dockerfile (`alpine`, git, checksum-verified `gortex_linux_amd64` v0.64.1), healthcheck `/healthz`, public domain, volume at `/data`. Starts `gortex daemon start --http-addr [::]:7411 --tools readonly` after cloning and tracking `GORTEX_REPOS`; the token comes from `GORTEX_DAEMON_HTTP_TOKEN`.
+- `gortex`: built from the template repo's Dockerfile (`alpine`, git, checksum-verified `gortex_linux_<arch>` v0.64.1), healthcheck `/healthz`, public domain, volume at `/data`. Starts `gortex daemon start --http-addr [::]:7411 --tools readonly` after cloning and tracking `GORTEX_REPOS`; the token comes from `GORTEX_DAEMON_HTTP_TOKEN`.
 - `web`: built from `Dockerfile.web` (upstream UI at a pinned commit, Next.js standalone, Caddy), healthcheck `/healthz`, public domain, `WEB_USER` / `WEB_PASSWORD`.
 - Agents connect to `https://<gortex-domain>/mcp` with `Authorization: Bearer <token>`. Claude Code: `claude mcp add --transport http gortex https://<gortex-domain>/mcp --header "Authorization: Bearer <token>"`.
 - The default `GORTEX_REPOS` is gortex's own repository, indexed in under thirty seconds, so the deploy is explorable immediately. Replace it with your repositories; private ones use `GIT_TOKEN`.

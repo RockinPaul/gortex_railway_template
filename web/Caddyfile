@@ -9,8 +9,10 @@
 		{$WEB_USER} {$WEB_PASSWORD_HASH}
 	}
 
+	# Liveness follows the UI process: proxy to its index so a dead Next.js server fails the healthcheck.
 	handle /healthz {
-		respond "ok" 200
+		rewrite * /
+		reverse_proxy 127.0.0.1:3000
 	}
 
 	# The daemon's JSON API, with the bearer token added here. flush_interval -1 keeps /v1/events (SSE) streaming.
