@@ -1,0 +1,28 @@
+{
+	admin off
+	auto_https off
+}
+
+:{$PORT} {
+	@needsauth not path /healthz
+	basic_auth @needsauth {
+		{$WEB_USER} {$WEB_PASSWORD_HASH}
+	}
+
+	handle /healthz {
+		respond "ok" 200
+	}
+
+	# The daemon's JSON API, with the bearer token added here. flush_interval -1 keeps /v1/events (SSE) streaming.
+	handle /v1/* {
+		reverse_proxy {$GORTEX_UPSTREAM} {
+			header_up Authorization "Bearer {$GORTEX_DAEMON_HTTP_TOKEN}"
+			header_up Host {upstream_hostport}
+			flush_interval -1
+		}
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:3000
+	}
+}

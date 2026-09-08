@@ -1,0 +1,33 @@
+# gortex web UI (github.com/gortexhq/web) behind Caddy.
+# Caddy asks people for a username/password and adds the daemon's bearer token server-side,
+# so the token never reaches the browser. Upgrade the UI by bumping WEB_COMMIT.
+FROM node:22-alpine AS build
+ARG WEB_COMMIT=9b0b48a5ee8d7a3499265f0fae4f28fd26d5114f
+RUN apk add --no-cache git \
+ && git clone --quiet https://github.com/gortexhq/web.git /src \
+ && git -C /src checkout --quiet "$WEB_COMMIT"
+WORKDIR /src
+# Three build-time patches on the pinned commit: standalone output, a relative API base so the
+# browser calls /v1/* on the UI's own origin (Caddy proxies it to the daemon), and the dashboard's
+# "connected to" label. Each patch fails the build if upstream changed the line it targets.
+COPY web/patch.js /tmp/patch.js
+RUN printf 'const nextConfig = { output: "standalone" };\nexport default nextConfig;\n' > next.config.ts \
+ && node /tmp/patch.js \
+ && npm ci --no-audit --no-fund
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build
+
+FROM node:22-alpine
+RUN apk add --no-cache caddy
+WORKDIR /app
+COPY --from=build /src/.next/standalone ./
+COPY --from=build /src/.next/static ./.next/static
+COPY --from=build /src/public ./public
+COPY web/Caddyfile web/entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+ENV PORT=8080 \
+    WEB_USER=admin \
+    GORTEX_UPSTREAM=http://gortex.railway.internal:7411 \
+    NEXT_TELEMETRY_DISABLED=1
+EXPOSE 8080
+ENTRYPOINT ["./entrypoint.sh"]
