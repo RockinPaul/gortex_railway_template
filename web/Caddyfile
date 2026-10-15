@@ -15,9 +15,18 @@
 		reverse_proxy 127.0.0.1:3000
 	}
 
+	# A browser Origin that is not this site's own: a cross-site page aiming at the API.
+	@crosssite expression {header.Origin} != "" && {header.Origin} != "https://" + {host} && {header.Origin} != "http://" + {hostport}
+
 	# The daemon's JSON API, with the bearer token added here. flush_interval -1 keeps /v1/events (SSE) streaming.
+	# gortex 0.64.8 and later refuse every request that carries a browser Origin unless the daemon
+	# names it in --http-allowed-origin, and browsers send Origin on the UI's own same-origin POSTs.
+	# Caddy is the trust boundary, so it refuses cross-site requests itself and drops Origin from
+	# the rest; the daemon then sees the UI like any other authenticated client.
 	handle /v1/* {
+		respond @crosssite "cross-site request refused" 403
 		reverse_proxy {$GORTEX_UPSTREAM} {
+			header_up -Origin
 			header_up Authorization "Bearer {$GORTEX_DAEMON_HTTP_TOKEN}"
 			header_up Host {upstream_hostport}
 			flush_interval -1
