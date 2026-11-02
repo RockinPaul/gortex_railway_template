@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11 — gortex v0.64.11
+
+- `gortex` runs the v0.64.11 release binary (was v0.64.8). Both checksums match the release's `checksums.txt` and the downloaded archives.
+- Upstream fixes include the indexer checking exclusions before it sniffs a file, and the release is built with Go 1.27.3.
+- The browser-`Origin` refusal that `web/Caddyfile` works around is unchanged, so the Caddy rule stays.
+
+### Upgrading an existing deployment
+
+Nothing to change. Both services redeploy; the volume and the graph store are kept.
+
 ## 2026-10 — gortex v0.64.8
 
 - `gortex` runs the v0.64.8 release binary (was v0.64.1). The checksums come from the release's `checksums.txt`, whose cosign signature was issued to gortex's own `release.yml` workflow at the `v0.64.8` tag. Picks up the `generate_skill` output-directory fix (GHSA-jh93-48gg-gqjp), exact host matching for vendor-key fallbacks, and upstream's new browser-origin guard.
