@@ -1,6 +1,6 @@
 # Deploy and Host gortex on Railway
 
-gortex is the open-source code-intelligence engine for AI coding agents. It parses repositories with tree-sitter into a graph of symbols, calls, usages, and contracts, and serves precise answers over MCP, so an agent reads the ten lines it needs instead of the whole file and spends up to fifty times fewer tokens. This template runs gortex 0.64.8 as a hosted daemon with a persistent volume, plus the upstream web UI behind a password.
+gortex is the open-source code-intelligence engine for AI coding agents. It parses repositories with tree-sitter into a graph of symbols, calls, usages, and contracts, and serves precise answers over MCP, so an agent reads the ten lines it needs instead of the whole file and spends up to fifty times fewer tokens. This template runs gortex 0.64.11 as a hosted daemon with a persistent volume, plus the upstream web UI behind a password.
 
 ## About Hosting gortex
 
@@ -27,9 +27,9 @@ Hosting gortex on Railway means one daemon service and one optional UI service. 
 
 ### Implementation Details
 
-- `gortex`: built from the template repo's Dockerfile (`alpine`, git, checksum-verified `gortex_linux_<arch>` v0.64.11), healthcheck `/healthz`, public domain, volume at `/data`. Starts `gortex daemon start --http-addr [::]:7411 --tools readonly` after cloning and tracking `GORTEX_REPOS`; the token comes from `GORTEX_DAEMON_HTTP_TOKEN`.
+- `gortex`: built from the template repo's Dockerfile (`alpine`, git, checksum-verified `gortex_linux_ARCH` v0.64.11), healthcheck `/healthz`, public domain, volume at `/data`. Starts `gortex daemon start --http-addr [::]:7411 --tools readonly` after cloning and tracking `GORTEX_REPOS`; the token comes from `GORTEX_DAEMON_HTTP_TOKEN`.
 - `web`: built from `Dockerfile.web` (upstream UI at a pinned commit, Next.js standalone, Caddy), healthcheck `/healthz`, public domain, `WEB_USER` / `WEB_PASSWORD`.
-- Agents connect to `https://<gortex-domain>/mcp` with `Authorization: Bearer <token>`. Claude Code: `claude mcp add --transport http gortex https://<gortex-domain>/mcp --header "Authorization: Bearer <token>"`.
+- Agents connect to `https://YOUR-GORTEX-DOMAIN/mcp` with `Authorization: Bearer YOUR-TOKEN`. Claude Code: `claude mcp add --transport http gortex https://YOUR-GORTEX-DOMAIN/mcp --header "Authorization: Bearer YOUR-TOKEN"`.
 - The default `GORTEX_REPOS` is gortex's own repository, indexed in under thirty seconds, so the deploy is explorable immediately. Replace it with your repositories; private ones use `GIT_TOKEN`.
 
 ## Why Deploy gortex on Railway?
